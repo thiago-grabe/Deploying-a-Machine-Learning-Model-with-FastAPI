@@ -1,0 +1,15 @@
+[flake8]
+max-line-length = 127
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .pytest_cache,
+    *.egg-info
+# Ignore whitespace warnings (W293, W291, W391) and some formatting issues
+extend-ignore = W293,W291,W391,E128,E203
+per-file-ignores =
+    sanitycheck.py:E265,E266,E302,E303,F401,E231,E222,E225,E501
+    tests/*.py:E402
+

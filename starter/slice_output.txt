@@ -1,0 +1,621 @@
+Model Performance on Data Slices
+================================================================================
+
+
+Slice Performance for Feature: workclass
+--------------------------------------------------------------------------------
+  workclass=?
+    Samples: 389
+    Precision: 0.6364
+    Recall: 0.3333
+    F1 Score: 0.4375
+
+  workclass=Federal-gov
+    Samples: 191
+    Precision: 0.8409
+    Recall: 0.5286
+    F1 Score: 0.6491
+
+  workclass=Local-gov
+    Samples: 387
+    Precision: 0.7528
+    Recall: 0.6091
+    F1 Score: 0.6734
+
+  workclass=Private
+    Samples: 4578
+    Precision: 0.8198
+    Recall: 0.5135
+    F1 Score: 0.6314
+
+  workclass=Self-emp-inc
+    Samples: 212
+    Precision: 0.8431
+    Recall: 0.7288
+    F1 Score: 0.7818
+
+  workclass=Self-emp-not-inc
+    Samples: 498
+    Precision: 0.7027
+    Recall: 0.4968
+    F1 Score: 0.5821
+
+  workclass=State-gov
+    Samples: 254
+    Precision: 0.7576
+    Recall: 0.6849
+    F1 Score: 0.7194
+
+  workclass=Without-pay
+    Samples: 4
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+
+Slice Performance for Feature: education
+--------------------------------------------------------------------------------
+  education=10th
+    Samples: 183
+    Precision: 1.0000
+    Recall: 0.0833
+    F1 Score: 0.1538
+
+  education=11th
+    Samples: 225
+    Precision: 1.0000
+    Recall: 0.2727
+    F1 Score: 0.4286
+
+  education=12th
+    Samples: 98
+    Precision: 1.0000
+    Recall: 0.4000
+    F1 Score: 0.5714
+
+  education=1st-4th
+    Samples: 23
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  education=5th-6th
+    Samples: 62
+    Precision: 1.0000
+    Recall: 0.5000
+    F1 Score: 0.6667
+
+  education=7th-8th
+    Samples: 141
+    Precision: 1.0000
+    Recall: 0.0000
+    F1 Score: 0.0000
+
+  education=9th
+    Samples: 115
+    Precision: 1.0000
+    Recall: 0.3333
+    F1 Score: 0.5000
+
+  education=Assoc-acdm
+    Samples: 198
+    Precision: 0.8182
+    Recall: 0.3830
+    F1 Score: 0.5217
+
+  education=Assoc-voc
+    Samples: 273
+    Precision: 0.9565
+    Recall: 0.3492
+    F1 Score: 0.5116
+
+  education=Bachelors
+    Samples: 1053
+    Precision: 0.7278
+    Recall: 0.8200
+    F1 Score: 0.7712
+
+  education=Doctorate
+    Samples: 77
+    Precision: 0.8393
+    Recall: 0.8246
+    F1 Score: 0.8319
+
+  education=HS-grad
+    Samples: 2085
+    Precision: 1.0000
+    Recall: 0.1884
+    F1 Score: 0.3171
+
+  education=Masters
+    Samples: 369
+    Precision: 0.8037
+    Recall: 0.8502
+    F1 Score: 0.8263
+
+  education=Preschool
+    Samples: 10
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  education=Prof-school
+    Samples: 116
+    Precision: 0.8372
+    Recall: 0.8571
+    F1 Score: 0.8471
+
+  education=Some-college
+    Samples: 1485
+    Precision: 0.9189
+    Recall: 0.2455
+    F1 Score: 0.3875
+
+
+Slice Performance for Feature: marital-status
+--------------------------------------------------------------------------------
+  marital-status=Divorced
+    Samples: 920
+    Precision: 0.9667
+    Recall: 0.2816
+    F1 Score: 0.4361
+
+  marital-status=Married-AF-spouse
+    Samples: 4
+    Precision: 1.0000
+    Recall: 0.0000
+    F1 Score: 0.0000
+
+  marital-status=Married-civ-spouse
+    Samples: 2950
+    Precision: 0.7854
+    Recall: 0.5950
+    F1 Score: 0.6770
+
+  marital-status=Married-spouse-absent
+    Samples: 96
+    Precision: 1.0000
+    Recall: 0.1250
+    F1 Score: 0.2222
+
+  marital-status=Never-married
+    Samples: 2126
+    Precision: 1.0000
+    Recall: 0.2427
+    F1 Score: 0.3906
+
+  marital-status=Separated
+    Samples: 209
+    Precision: 1.0000
+    Recall: 0.3158
+    F1 Score: 0.4800
+
+  marital-status=Widowed
+    Samples: 208
+    Precision: 1.0000
+    Recall: 0.1053
+    F1 Score: 0.1905
+
+
+Slice Performance for Feature: occupation
+--------------------------------------------------------------------------------
+  occupation=?
+    Samples: 389
+    Precision: 0.6364
+    Recall: 0.3333
+    F1 Score: 0.4375
+
+  occupation=Adm-clerical
+    Samples: 726
+    Precision: 0.7273
+    Recall: 0.3333
+    F1 Score: 0.4571
+
+  occupation=Armed-Forces
+    Samples: 3
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  occupation=Craft-repair
+    Samples: 821
+    Precision: 0.8261
+    Recall: 0.3149
+    F1 Score: 0.4560
+
+  occupation=Exec-managerial
+    Samples: 838
+    Precision: 0.8426
+    Recall: 0.6474
+    F1 Score: 0.7322
+
+  occupation=Farming-fishing
+    Samples: 193
+    Precision: 0.6154
+    Recall: 0.2857
+    F1 Score: 0.3902
+
+  occupation=Handlers-cleaners
+    Samples: 273
+    Precision: 0.5000
+    Recall: 0.3333
+    F1 Score: 0.4000
+
+  occupation=Machine-op-inspct
+    Samples: 378
+    Precision: 0.8000
+    Recall: 0.2553
+    F1 Score: 0.3871
+
+  occupation=Other-service
+    Samples: 667
+    Precision: 0.5714
+    Recall: 0.1538
+    F1 Score: 0.2424
+
+  occupation=Priv-house-serv
+    Samples: 26
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  occupation=Prof-specialty
+    Samples: 828
+    Precision: 0.7984
+    Recall: 0.7679
+    F1 Score: 0.7828
+
+  occupation=Protective-serv
+    Samples: 136
+    Precision: 0.6250
+    Recall: 0.2381
+    F1 Score: 0.3448
+
+  occupation=Sales
+    Samples: 729
+    Precision: 0.7801
+    Recall: 0.5729
+    F1 Score: 0.6607
+
+  occupation=Tech-support
+    Samples: 189
+    Precision: 0.9048
+    Recall: 0.3725
+    F1 Score: 0.5278
+
+  occupation=Transport-moving
+    Samples: 317
+    Precision: 0.7727
+    Recall: 0.2656
+    F1 Score: 0.3953
+
+
+Slice Performance for Feature: relationship
+--------------------------------------------------------------------------------
+  relationship=Husband
+    Samples: 2590
+    Precision: 0.7872
+    Recall: 0.6009
+    F1 Score: 0.6815
+
+  relationship=Not-in-family
+    Samples: 1702
+    Precision: 0.9800
+    Recall: 0.2606
+    F1 Score: 0.4118
+
+  relationship=Other-relative
+    Samples: 178
+    Precision: 1.0000
+    Recall: 0.3750
+    F1 Score: 0.5455
+
+  relationship=Own-child
+    Samples: 1019
+    Precision: 1.0000
+    Recall: 0.1176
+    F1 Score: 0.2105
+
+  relationship=Unmarried
+    Samples: 702
+    Precision: 1.0000
+    Recall: 0.2222
+    F1 Score: 0.3636
+
+  relationship=Wife
+    Samples: 322
+    Precision: 0.7670
+    Recall: 0.5524
+    F1 Score: 0.6423
+
+
+Slice Performance for Feature: race
+--------------------------------------------------------------------------------
+  race=Amer-Indian-Eskimo
+    Samples: 71
+    Precision: 0.8333
+    Recall: 0.5000
+    F1 Score: 0.6250
+
+  race=Asian-Pac-Islander
+    Samples: 193
+    Precision: 0.7377
+    Recall: 0.7258
+    F1 Score: 0.7317
+
+  race=Black
+    Samples: 599
+    Precision: 0.7907
+    Recall: 0.5231
+    F1 Score: 0.6296
+
+  race=Other
+    Samples: 55
+    Precision: 0.6667
+    Recall: 0.6667
+    F1 Score: 0.6667
+
+  race=White
+    Samples: 5595
+    Precision: 0.8021
+    Recall: 0.5308
+    F1 Score: 0.6389
+
+
+Slice Performance for Feature: sex
+--------------------------------------------------------------------------------
+  sex=Female
+    Samples: 2126
+    Precision: 0.7966
+    Recall: 0.4034
+    F1 Score: 0.5356
+
+  sex=Male
+    Samples: 4387
+    Precision: 0.7975
+    Recall: 0.5620
+    F1 Score: 0.6594
+
+
+Slice Performance for Feature: native-country
+--------------------------------------------------------------------------------
+  native-country=?
+    Samples: 125
+    Precision: 0.6774
+    Recall: 0.6774
+    F1 Score: 0.6774
+
+  native-country=Cambodia
+    Samples: 3
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Canada
+    Samples: 22
+    Precision: 0.5556
+    Recall: 0.6250
+    F1 Score: 0.5882
+
+  native-country=China
+    Samples: 18
+    Precision: 0.8750
+    Recall: 0.8750
+    F1 Score: 0.8750
+
+  native-country=Columbia
+    Samples: 6
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Cuba
+    Samples: 19
+    Precision: 1.0000
+    Recall: 0.8000
+    F1 Score: 0.8889
+
+  native-country=Dominican-Republic
+    Samples: 8
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Ecuador
+    Samples: 5
+    Precision: 1.0000
+    Recall: 0.5000
+    F1 Score: 0.6667
+
+  native-country=El-Salvador
+    Samples: 20
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=England
+    Samples: 14
+    Precision: 0.7500
+    Recall: 0.7500
+    F1 Score: 0.7500
+
+  native-country=France
+    Samples: 5
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Germany
+    Samples: 32
+    Precision: 0.8182
+    Recall: 0.6923
+    F1 Score: 0.7500
+
+  native-country=Greece
+    Samples: 7
+    Precision: 1.0000
+    Recall: 0.5000
+    F1 Score: 0.6667
+
+  native-country=Guatemala
+    Samples: 13
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Haiti
+    Samples: 6
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Honduras
+    Samples: 4
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Hong
+    Samples: 8
+    Precision: 0.5000
+    Recall: 1.0000
+    F1 Score: 0.6667
+
+  native-country=Hungary
+    Samples: 3
+    Precision: 1.0000
+    Recall: 0.5000
+    F1 Score: 0.6667
+
+  native-country=India
+    Samples: 21
+    Precision: 0.7000
+    Recall: 0.8750
+    F1 Score: 0.7778
+
+  native-country=Iran
+    Samples: 12
+    Precision: 0.6000
+    Recall: 0.6000
+    F1 Score: 0.6000
+
+  native-country=Ireland
+    Samples: 5
+    Precision: 1.0000
+    Recall: 0.0000
+    F1 Score: 0.0000
+
+  native-country=Italy
+    Samples: 14
+    Precision: 0.7500
+    Recall: 0.7500
+    F1 Score: 0.7500
+
+  native-country=Jamaica
+    Samples: 13
+    Precision: 0.0000
+    Recall: 1.0000
+    F1 Score: 0.0000
+
+  native-country=Japan
+    Samples: 11
+    Precision: 1.0000
+    Recall: 0.7500
+    F1 Score: 0.8571
+
+  native-country=Laos
+    Samples: 4
+    Precision: 1.0000
+    Recall: 0.0000
+    F1 Score: 0.0000
+
+  native-country=Mexico
+    Samples: 114
+    Precision: 1.0000
+    Recall: 0.3333
+    F1 Score: 0.5000
+
+  native-country=Nicaragua
+    Samples: 7
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Peru
+    Samples: 5
+    Precision: 1.0000
+    Recall: 0.0000
+    F1 Score: 0.0000
+
+  native-country=Philippines
+    Samples: 35
+    Precision: 1.0000
+    Recall: 0.6875
+    F1 Score: 0.8148
+
+  native-country=Poland
+    Samples: 14
+    Precision: 0.3333
+    Recall: 0.5000
+    F1 Score: 0.4000
+
+  native-country=Portugal
+    Samples: 6
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Puerto-Rico
+    Samples: 22
+    Precision: 0.8000
+    Recall: 0.6667
+    F1 Score: 0.7273
+
+  native-country=Scotland
+    Samples: 3
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=South
+    Samples: 13
+    Precision: 0.2000
+    Recall: 0.5000
+    F1 Score: 0.2857
+
+  native-country=Taiwan
+    Samples: 11
+    Precision: 0.8000
+    Recall: 1.0000
+    F1 Score: 0.8889
+
+  native-country=Thailand
+    Samples: 5
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Trinadad&Tobago
+    Samples: 3
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=United-States
+    Samples: 5870
+    Precision: 0.8060
+    Recall: 0.5240
+    F1 Score: 0.6351
+
+  native-country=Vietnam
+    Samples: 5
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
+  native-country=Yugoslavia
+    Samples: 2
+    Precision: 1.0000
+    Recall: 1.0000
+    F1 Score: 1.0000
+
