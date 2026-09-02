@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<!--
+  Census Income Classification — simple test UI.
+  Served statically by Vercel at /ui/ (public/ dir); calls the FastAPI
+  function at /predict on the same origin.
+
+  IMPORTANT: every categorical <select> value below is generated from the
+  exact training vocabulary of the committed OneHotEncoder (encoder.pkl).
+  The encoder was fit with handle_unknown="ignore", so a value that does not
+  BYTE-MATCH the training data is silently zero-encoded and degrades the
+  prediction. Do not "fix" oddities like "Hong", "South" or the misspelled
+  "Trinadad&Tobago" — they are verbatim training categories.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Census Income Classifier</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --ink: #1f2430; --muted: #6b7280;
+    --accent: #2557a7; --ok: #15803d; --warn: #b45309; --err: #b91c1c;
+    --border: #d7dbe0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 64px;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--ink);
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; margin-bottom: 16px;
+  }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .presets button {
+    border: 1px solid var(--accent); background: #eef3fb; color: var(--accent);
+    border-radius: 999px; padding: 6px 14px; font-size: 0.85rem; cursor: pointer;
+  }
+  .presets button:hover { background: var(--accent); color: #fff; }
+  form .grid {
+    display: grid; gap: 12px 16px;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+  label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 3px; }
+  select, input {
+    width: 100%; padding: 7px 8px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.9rem; background: #fff; color: var(--ink);
+  }
+  .actions { margin-top: 18px; display: flex; gap: 10px; align-items: center; }
+  .actions button[type=submit] {
+    background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+    padding: 10px 22px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  }
+  .actions button[type=submit]:disabled { opacity: 0.6; cursor: wait; }
+  #result { font-size: 1.05rem; font-weight: 700; }
+  #result.ok   { color: var(--ok); }
+  #result.high { color: var(--warn); }
+  #result.err  { color: var(--err); font-weight: 500; font-size: 0.9rem; }
+  #meta { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+  footer { color: var(--muted); font-size: 0.78rem; margin-top: 20px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Census Income Classifier</h1>
+  <p class="sub">Predicts whether annual income exceeds $50K from census features
+     (RandomForest served by FastAPI on Vercel).</p>
+
+  <div class="card">
+    <label style="margin-bottom:8px">Test presets — click to fill the form</label>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <form id="predict-form" class="card">
+    <div class="grid" id="fields"></div>
+    <div class="actions">
+      <button type="submit" id="submit-btn">Predict</button>
+      <span id="result"></span>
+    </div>
+    <div id="meta"></div>
+  </form>
+
+  <footer>
+    API: <a href="/docs">/docs</a> · <a href="/health">/health</a> ·
+    Repo: thiago-grabe/Deploying-a-Machine-Learning-Model-with-FastAPI
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+// ---------------------------------------------------------------------------
+// Field definitions. Categorical values are the EXACT training vocabulary
+// (frequency-ordered, verified against the unpickled encoder.pkl). JSON keys
+// use the hyphenated aliases the API expects.
+// ---------------------------------------------------------------------------
+const FIELDS = [
+  { key: "age", type: "number", min: 1, max: 120, value: 37 },
+  { key: "workclass", type: "select", values: [
+    "Private", "Self-emp-not-inc", "Local-gov", "?", "State-gov",
+    "Self-emp-inc", "Federal-gov", "Without-pay", "Never-worked"] },
+  { key: "fnlgt", type: "number", min: 1, max: 2000000, value: 178356 },
+  { key: "education", type: "select", values: [
+    "HS-grad", "Some-college", "Bachelors", "Masters", "Assoc-voc", "11th",
+    "Assoc-acdm", "10th", "7th-8th", "Prof-school", "9th", "12th",
+    "Doctorate", "5th-6th", "1st-4th", "Preschool"] },
+  { key: "education-num", type: "number", min: 1, max: 16, value: 9 },
+  { key: "marital-status", type: "select", values: [
+    "Married-civ-spouse", "Never-married", "Divorced", "Separated",
+    "Widowed", "Married-spouse-absent", "Married-AF-spouse"] },
+  { key: "occupation", type: "select", values: [
+    "Prof-specialty", "Craft-repair", "Exec-managerial", "Adm-clerical",
+    "Sales", "Other-service", "Machine-op-inspct", "?", "Transport-moving",
+    "Handlers-cleaners", "Farming-fishing", "Tech-support",
+    "Protective-serv", "Priv-house-serv", "Armed-Forces"] },
+  { key: "relationship", type: "select", values: [
+    "Husband", "Not-in-family", "Own-child", "Unmarried", "Wife",
+    "Other-relative"] },
+  { key: "race", type: "select", values: [
+    "White", "Black", "Asian-Pac-Islander", "Amer-Indian-Eskimo", "Other"] },
+  { key: "sex", type: "select", values: ["Male", "Female"] },
+  { key: "capital-gain", type: "number", min: 0, max: 99999, value: 0 },
+  { key: "capital-loss", type: "number", min: 0, max: 4356, value: 0 },
+  { key: "hours-per-week", type: "number", min: 1, max: 99, value: 40 },
+  { key: "native-country", type: "select", values: [
+    "United-States", "Mexico", "?", "Philippines", "Germany", "Canada",
+    "Puerto-Rico", "El-Salvador", "India", "Cuba", "England", "Jamaica",
+    "South", "China", "Italy", "Dominican-Republic", "Vietnam", "Guatemala",
+    "Japan", "Poland", "Columbia", "Taiwan", "Haiti", "Iran", "Portugal",
+    "Nicaragua", "Peru", "Greece", "France", "Ecuador", "Ireland", "Hong",
+    "Trinadad&Tobago", "Cambodia", "Thailand", "Laos", "Yugoslavia",
+    "Outlying-US(Guam-USVI-etc)", "Hungary", "Honduras", "Scotland",
+    "Holand-Netherlands"] },
+];
+
+// Five test scenarios. 1 & 2 are byte-identical to the rubric payloads in
+// query_live_api.py / tests. All values are verified training-vocabulary rows.
+const PRESETS = [
+  { label: "1 · Rubric low income (expect <=50K)", payload: {
+    "age": 25, "workclass": "Private", "fnlgt": 226802, "education": "11th",
+    "education-num": 7, "marital-status": "Never-married",
+    "occupation": "Machine-op-inspct", "relationship": "Own-child",
+    "race": "Black", "sex": "Male", "capital-gain": 0, "capital-loss": 0,
+    "hours-per-week": 40, "native-country": "United-States" } },
+  { label: "2 · Rubric high income (expect >50K)", payload: {
+    "age": 52, "workclass": "Self-emp-inc", "fnlgt": 287927,
+    "education": "HS-grad", "education-num": 9,
+    "marital-status": "Married-civ-spouse", "occupation": "Exec-managerial",
+    "relationship": "Wife", "race": "White", "sex": "Female",
+    "capital-gain": 15024, "capital-loss": 0, "hours-per-week": 40,
+    "native-country": "United-States" } },
+  { label: "3 · Typical row", payload: {
+    "age": 37, "workclass": "Private", "fnlgt": 178356, "education": "HS-grad",
+    "education-num": 9, "marital-status": "Married-civ-spouse",
+    "occupation": "Prof-specialty", "relationship": "Husband",
+    "race": "White", "sex": "Male", "capital-gain": 0, "capital-loss": 0,
+    "hours-per-week": 40, "native-country": "United-States" } },
+  { label: "4 · Senior, unknown workclass (expect <=50K)", payload: {
+    "age": 68, "workclass": "?", "fnlgt": 187749, "education": "HS-grad",
+    "education-num": 9, "marital-status": "Widowed", "occupation": "?",
+    "relationship": "Not-in-family", "race": "White", "sex": "Female",
+    "capital-gain": 0, "capital-loss": 0, "hours-per-week": 12,
+    "native-country": "United-States" } },
+  { label: "5 · Immigrant professional (expect >50K)", payload: {
+    "age": 45, "workclass": "Private", "fnlgt": 120277,
+    "education": "Doctorate", "education-num": 16,
+    "marital-status": "Married-civ-spouse", "occupation": "Prof-specialty",
+    "relationship": "Husband", "race": "Asian-Pac-Islander", "sex": "Male",
+    "capital-gain": 5178, "capital-loss": 0, "hours-per-week": 50,
+    "native-country": "India" } },
+];
+
+const fieldsEl = document.getElementById("fields");
+const form = document.getElementById("predict-form");
+const resultEl = document.getElementById("result");
+const metaEl = document.getElementById("meta");
+const submitBtn = document.getElementById("submit-btn");
+
+console.info("[ui] Census Income Classifier UI booting:",
+             FIELDS.length, "fields,", PRESETS.length, "presets");
+
+// Build the form controls.
+for (const field of FIELDS) {
+  const cell = document.createElement("div");
+  const label = document.createElement("label");
+  label.textContent = field.key;
+  label.htmlFor = "f-" + field.key;
+  cell.appendChild(label);
+
+  let input;
+  if (field.type === "select") {
+    input = document.createElement("select");
+    for (const value of field.values) {
+      const opt = document.createElement("option");
+      opt.value = value;  // byte-exact assignment, no HTML-escaping pitfalls
+      opt.textContent = value === "?" ? "? (unknown)" : value;
+      input.appendChild(opt);
+    }
+  } else {
+    input = document.createElement("input");
+    input.type = "number";
+    input.min = field.min;
+    input.max = field.max;
+    input.step = 1;
+    input.value = field.value;
+    input.required = true;
+  }
+  input.id = "f-" + field.key;
+  input.name = field.key;
+  cell.appendChild(input);
+  fieldsEl.appendChild(cell);
+}
+console.info("[ui] Form controls built");
+
+// Build the preset buttons.
+const presetsEl = document.getElementById("presets");
+PRESETS.forEach((preset, i) => {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = preset.label;
+  btn.addEventListener("click", () => {
+    console.info(`[ui] Preset ${i + 1} clicked:`, preset.label);
+    console.log("[ui] Filling form with payload:", preset.payload);
+    for (const [key, value] of Object.entries(preset.payload)) {
+      const el = document.getElementById("f-" + key);
+      if (el) el.value = value;
+      else console.warn("[ui] No form control for preset key:", key);
+    }
+    setResult("", "");
+    metaEl.textContent = "Preset loaded: " + preset.label;
+  });
+  presetsEl.appendChild(btn);
+});
+
+function collectPayload() {
+  const payload = {};
+  for (const field of FIELDS) {
+    const el = document.getElementById("f-" + field.key);
+    payload[field.key] = field.type === "number" ? Number(el.value) : el.value;
+  }
+  return payload;
+}
+
+function setResult(text, cls) {
+  resultEl.textContent = text;
+  resultEl.className = cls;
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const payload = collectPayload();
+  console.info("[ui] Submitting prediction request");
+  console.log("[ui] POST /predict payload:", payload);
+
+  submitBtn.disabled = true;
+  setResult("Predicting…", "");
+  metaEl.textContent = "";
+  const start = performance.now();
+
+  try {
+    const response = await fetch("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const elapsed = (performance.now() - start).toFixed(0);
+    console.info(`[ui] Response status=${response.status} elapsed=${elapsed}ms`);
+
+    const body = await response.json();
+    console.log("[ui] Response body:", body);
+
+    if (response.ok) {
+      const label = body.prediction;
+      setResult("Prediction: " + label, label === ">50K" ? "high" : "ok");
+      metaEl.textContent = `HTTP ${response.status} · ${elapsed} ms` +
+        ` · first request after idle may take a few seconds (cold start)`;
+    } else {
+      const detail = typeof body.detail === "string"
+        ? body.detail : JSON.stringify(body.detail);
+      console.error("[ui] API error:", response.status, detail);
+      setResult(`Error ${response.status}: ${detail}`, "err");
+    }
+  } catch (err) {
+    console.error("[ui] Request failed:", err);
+    setResult("Network error: " + err.message, "err");
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+console.info("[ui] Ready");
+</script>
+</body>
+</html>
