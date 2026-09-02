@@ -1,5 +1,10 @@
 version: 2
 updates:
+  # Root requirements.txt = Vercel deployment pins (inference runtime only).
+  # scikit-learn/numpy are excluded entirely: the committed model pickles were
+  # trained with the pinned versions, and a bump here would break unpickling
+  # on Vercel while CI (which installs starter/requirements.txt) stays green.
+  # Keep pins in lockstep with starter/requirements.txt when updating.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -7,5 +12,20 @@ updates:
     allow:
       - dependency-type: "direct"
     ignore:
+      - dependency-name: "scikit-learn"
+      - dependency-name: "numpy"
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+
+  # Full dev/CI dependency set.
+  - package-ecosystem: "pip"
+    directory: "/starter"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "direct"
+    ignore:
+      - dependency-name: "scikit-learn"
+      - dependency-name: "numpy"
       - dependency-name: "*"
         update-types: ["version-update:semver-minor", "version-update:semver-patch"]

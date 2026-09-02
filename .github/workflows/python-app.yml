@@ -29,9 +29,9 @@ jobs:
     - name: Lint with flake8
       run: |
         # Stop the build if there are Python syntax errors or undefined names
-        flake8 starter/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 starter/ app.py --count --select=E9,F63,F7,F82 --show-source --statistics
         # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 starter/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 starter/ app.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     
     - name: Train model
       run: |
@@ -42,4 +42,40 @@ jobs:
       run: |
         cd starter
         python -m pytest tests/ -v --tb=short
+
+  # CD is gated on CI: this job only runs after `test` succeeds on a push to
+  # master (never on PRs). Vercel's Git auto-deploy is disabled in vercel.json
+  # so this job is the ONLY path to production.
+  deploy:
+    needs: [test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: vercel-production
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Vercel CLI
+      run: npm install -g vercel@latest  # FastAPI preset needs >= 48.1.8
+
+    - name: Deploy to Vercel (remote build)
+      run: |
+        vercel deploy --prod --yes --logs --token="$VERCEL_TOKEN" > deployment-url.txt
+        echo "Deployed: $(cat deployment-url.txt)"
+
+    - name: Smoke-test production alias
+      run: |
+        # The stable production alias is public; the per-deployment URL from
+        # deployment-url.txt is 401-protected under default Deployment
+        # Protection, so it is NOT used here.
+        sleep 10
+        curl -sf https://census-income-classification.vercel.app/health
+        curl -sf https://census-income-classification.vercel.app/
 
