@@ -5,9 +5,17 @@ Usage: python query_live_api.py [API_URL]
 If no URL is provided, it will use the default localhost URL for testing.
 """
 
-import requests
-import sys
 import json
+import logging
+import os
+import sys
+import time
+
+import requests
+
+logger = logging.getLogger(__name__)
+
+REQUEST_TIMEOUT = 30  # seconds; requests hangs forever without one
 
 
 def query_api(base_url):
@@ -17,16 +25,23 @@ def query_api(base_url):
     Args:
         base_url: Base URL of the deployed API
     """
+    logger.info("Querying API at %s", base_url)
     print(f"Querying API at: {base_url}")
     print("=" * 80)
-    
+
     # Test 1: GET request on root
     print("\n1. Testing GET request on root endpoint...")
     try:
-        response = requests.get(f"{base_url}/")
+        start = time.perf_counter()
+        response = requests.get(f"{base_url}/", timeout=REQUEST_TIMEOUT)
+        logger.info(
+            "GET / status=%d elapsed_ms=%.1f",
+            response.status_code, (time.perf_counter() - start) * 1000
+        )
         print(f"Status Code: {response.status_code}")
         print(f"Response: {json.dumps(response.json(), indent=2)}")
     except Exception as e:
+        logger.error("GET / failed: %s", e)
         print(f"Error: {e}")
         return
     
@@ -50,14 +65,21 @@ def query_api(base_url):
     }
     
     try:
+        start = time.perf_counter()
         response = requests.post(
             f"{base_url}/predict",
-            json=low_income_data
+            json=low_income_data,
+            timeout=REQUEST_TIMEOUT
+        )
+        logger.info(
+            "POST /predict (low income) status=%d elapsed_ms=%.1f",
+            response.status_code, (time.perf_counter() - start) * 1000
         )
         print(f"Status Code: {response.status_code}")
         print(f"Input Data: {json.dumps(low_income_data, indent=2)}")
         print(f"Prediction: {json.dumps(response.json(), indent=2)}")
     except Exception as e:
+        logger.error("POST /predict (low income) failed: %s", e)
         print(f"Error: {e}")
     
     # Test 3: POST request - Example predicting >50K
@@ -80,14 +102,21 @@ def query_api(base_url):
     }
     
     try:
+        start = time.perf_counter()
         response = requests.post(
             f"{base_url}/predict",
-            json=high_income_data
+            json=high_income_data,
+            timeout=REQUEST_TIMEOUT
+        )
+        logger.info(
+            "POST /predict (high income) status=%d elapsed_ms=%.1f",
+            response.status_code, (time.perf_counter() - start) * 1000
         )
         print(f"Status Code: {response.status_code}")
         print(f"Input Data: {json.dumps(high_income_data, indent=2)}")
         print(f"Prediction: {json.dumps(response.json(), indent=2)}")
     except Exception as e:
+        logger.error("POST /predict (high income) failed: %s", e)
         print(f"Error: {e}")
     
     print("\n" + "=" * 80)
@@ -111,5 +140,9 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=os.getenv("LOG_LEVEL", "INFO"),
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
     main()
 

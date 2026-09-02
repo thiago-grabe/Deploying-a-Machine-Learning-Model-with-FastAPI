@@ -3,8 +3,11 @@ from os import path
 import argparse
 import importlib
 import inspect
+import logging
 import os
 import sys
+
+logger = logging.getLogger(__name__)
 
 FAIL_COLOR = '\033[91m'
 OK_COLOR = '\033[92m'
@@ -128,8 +131,14 @@ def run_sanity_check(test_dir):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=os.getenv("LOG_LEVEL", "INFO"),
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
     parser = argparse.ArgumentParser()
     parser.add_argument('test_dir',metavar='test_dir',nargs='?',default='tests',help='Name of the directory that has test files.')
     args = parser.parse_args()
+    logger.info("Sanity check started (test_dir=%s)", args.test_dir)
     run_sanity_check(args.test_dir)
+    logger.info("Sanity check finished")
 

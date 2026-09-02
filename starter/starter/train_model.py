@@ -2,9 +2,11 @@
 Script to train machine learning model and evaluate performance on data slices.
 """
 
+import logging
+import os
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import os
 
 # Import the necessary functions from the starter code
 from ml.data import process_data
@@ -16,6 +18,8 @@ from ml.model import (
     save_encoder
 )
 
+logger = logging.getLogger(__name__)
+
 
 def main():
     """Main function to train and evaluate the model."""
@@ -23,9 +27,11 @@ def main():
     # Load the data
     data_path = os.path.join(os.path.dirname(__file__), "..", "data", "census.csv")
     data = pd.read_csv(data_path)
-    
+    logger.info("Data loaded from %s: shape=%s", data_path, data.shape)
+
     # Split the data into train and test sets
     train, test = train_test_split(data, test_size=0.20, random_state=42)
+    logger.info("Train/test split: train=%d test=%d rows", len(train), len(test))
     
     # Define categorical features
     cat_features = [
@@ -55,18 +61,18 @@ def main():
     )
     
     # Train the model
-    print("Training model...")
+    logger.info("Training model...")
     model = train_model(X_train, y_train)
-    
+
     # Evaluate on test set
-    print("Evaluating model on test set...")
+    logger.info("Evaluating model on test set...")
     preds = inference(model, X_test)
     precision, recall, fbeta = compute_model_metrics(y_test, preds)
-    
-    print("Overall Model Performance:")
-    print(f"  Precision: {precision:.4f}")
-    print(f"  Recall: {recall:.4f}")
-    print(f"  F1 Score: {fbeta:.4f}")
+
+    logger.info(
+        "Overall model performance: precision=%.4f recall=%.4f f1=%.4f",
+        precision, recall, fbeta
+    )
     
     # Save the model and encoders
     model_dir = os.path.join(os.path.dirname(__file__), "..", "model")
@@ -76,13 +82,13 @@ def main():
     encoder_path = os.path.join(model_dir, "encoder.pkl")
     lb_path = os.path.join(model_dir, "lb.pkl")
     
-    print("Saving model and encoders...")
+    logger.info("Saving model and encoders...")
     save_model(model, model_path)
     save_encoder(encoder, encoder_path)
     save_encoder(lb, lb_path)
-    
+
     # Compute performance on slices of data
-    print("\nComputing performance on data slices...")
+    logger.info("Computing performance on data slices...")
     output_file = os.path.join(os.path.dirname(__file__), "..", "slice_output.txt")
     
     with open(output_file, 'w') as f:
@@ -91,6 +97,7 @@ def main():
         
         # Compute slices for each categorical feature
         for feature in cat_features:
+            logger.info("Computing slices for feature '%s'", feature)
             f.write(f"\nSlice Performance for Feature: {feature}\n")
             f.write("-" * 80 + "\n")
             
@@ -129,9 +136,13 @@ def main():
                 f.write(f"    F1 Score: {fbeta_slice:.4f}\n")
                 f.write("\n")
     
-    print(f"Slice performance saved to {output_file}")
-    print("Training complete!")
+    logger.info("Slice performance saved to %s", output_file)
+    logger.info("Training complete!")
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=os.getenv("LOG_LEVEL", "INFO"),
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
     main()
