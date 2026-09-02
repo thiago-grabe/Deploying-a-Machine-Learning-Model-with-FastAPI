@@ -1,0 +1,15 @@
+# Ruff configuration — mirrors starter/.flake8 (max line 127, whitespace
+# pragmas ignored, vendored sanitycheck.py exempted from style rules).
+line-length = 127
+target-version = "py312"
+extend-exclude = [".venv", "**/__pycache__"]
+
+[lint]
+select = ["E", "F", "W"]
+ignore = ["W291", "W293", "E203"]
+
+[lint.per-file-ignores]
+"starter/sanitycheck.py" = ["E501", "E722", "E231", "E225", "E302", "E305", "W391"]
+"starter/tests/*.py" = ["E402"]
+"starter/main.py" = ["E402"]
+"app.py" = ["E402"]
