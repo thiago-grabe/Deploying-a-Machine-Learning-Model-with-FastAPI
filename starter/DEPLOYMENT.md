@@ -1,5 +1,9 @@
 # Deployment Guide
 
+> **Note:** this document covers the **Render.com** deployment. The project is
+> also deployed on **Vercel** (serverless FastAPI + web UI at `/ui/`, with
+> CI-gated CD) — see [../VERCEL_DEPLOYMENT.md](../VERCEL_DEPLOYMENT.md).
+
 This guide covers deploying the Census Income Classification API to cloud platforms. **This project is currently deployed on Render.com**.
 
 ## 🌐 Current Deployment
