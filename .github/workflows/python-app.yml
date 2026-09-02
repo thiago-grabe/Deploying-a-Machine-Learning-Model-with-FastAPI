@@ -9,37 +9,163 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded PR runs; never cancel a master run mid-deploy.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 10
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
         python-version: "3.13"
-    
+
+    - name: Install linters
+      run: pip install ruff flake8
+
+    - name: Ruff
+      run: ruff check . --output-format=github
+
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 starter/ app.py --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 starter/ app.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+        cache: "pip"
+        cache-dependency-path: starter/requirements.txt
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r starter/requirements.txt
-    
-    - name: Lint with flake8
-      run: |
-        # Stop the build if there are Python syntax errors or undefined names
-        flake8 starter/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 starter/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
+        pip install pytest-cov
+
     - name: Train model
       run: |
         cd starter
         python starter/train_model.py
-    
-    - name: Test with pytest
+
+    - name: Test with pytest (with coverage)
+      run: |
+        cd starter
+        python -m pytest tests/ -v --tb=short --cov=. --cov-report=term-missing
+
+    - name: Upload slice metrics artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: slice-output
+        path: starter/slice_output.txt
+        retention-days: 14
+
+  # Runs the suite exactly as Vercel serves it: Python 3.12 + the slim root
+  # requirements.txt + the committed model pickles (no retraining). Catches
+  # runtime-version or missing-dependency skew before a deploy does.
+  test-vercel-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12 (Vercel runtime)
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: "pip"
+        cache-dependency-path: requirements.txt
+
+    - name: Install deployment dependencies only
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest==8.4.2 httpx==0.28.1
+
+    - name: Test against committed model artifacts
       run: |
         cd starter
         python -m pytest tests/ -v --tb=short
 
+  # Advisory only: the course dependency set is pinned for reproducibility
+  # (e.g. starlette via fastapi==0.117.1 has known CVEs with no in-pin fix),
+  # so findings surface as warning annotations without failing the check.
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install scanners
+      run: pip install pip-audit bandit
+
+    - name: pip-audit (Vercel runtime dependencies)
+      run: |
+        pip-audit -r requirements.txt || \
+          echo "::warning title=pip-audit::Known vulnerabilities in pinned dependencies (advisory - see job log)"
+
+    - name: Bandit SAST (application code)
+      # B301/B403 (pickle) skipped: pickle persistence is a course requirement
+      run: |
+        bandit -r starter/starter starter/main.py app.py -s B301,B403 || \
+          echo "::warning title=bandit::SAST findings (advisory - see job log)"
+
+  # CD is gated on CI: runs only after lint + both test jobs succeed on a
+  # push to master (never on PRs). Vercel's Git auto-deploy is disabled in
+  # vercel.json so this job is the ONLY path to production.
+  deploy:
+    needs: [lint, test, test-vercel-parity]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: vercel-production
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Vercel CLI
+      run: npm install -g vercel@latest  # FastAPI preset needs >= 48.1.8
+
+    - name: Deploy to Vercel (remote build)
+      run: |
+        vercel deploy --prod --yes --logs --token="$VERCEL_TOKEN" > deployment-url.txt
+        echo "Deployed: $(cat deployment-url.txt)"
+
+    - name: Smoke-test production alias
+      run: |
+        # The stable production alias is public; the per-deployment URL from
+        # deployment-url.txt is 401-protected under default Deployment
+        # Protection, so it is NOT used here.
+        sleep 10
+        curl -sf https://census-income-classification.vercel.app/health
+        curl -sf https://census-income-classification.vercel.app/

@@ -57,3 +57,8 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Vercel
+.vercel/
+.vercel
+.env*

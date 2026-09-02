@@ -1,5 +1,9 @@
+import logging
+
 import numpy as np
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder
+
+logger = logging.getLogger(__name__)
 
 
 def process_data(
@@ -44,6 +48,11 @@ def process_data(
         passed in.
     """
 
+    logger.debug(
+        "process_data: n_rows=%d training=%s n_categorical=%d",
+        len(X), training, len(categorical_features)
+    )
+
     if label is not None:
         y = X[label]
         X = X.drop([label], axis=1)
@@ -59,6 +68,21 @@ def process_data(
         X_categorical = encoder.fit_transform(X_categorical)
         y = lb.fit_transform(y.values).ravel()
     else:
+        # handle_unknown="ignore" zero-encodes any category the encoder never
+        # saw at fit time, silently degrading the prediction — surface it.
+        for i, feature in enumerate(categorical_features):
+            unknown = ~np.isin(X_categorical[:, i], encoder.categories_[i])
+            n_unknown = int(unknown.sum())
+            if n_unknown > 0:
+                logger.warning(
+                    "process_data: %d value(s) in feature '%s' are outside the "
+                    "training vocabulary and will be zero-encoded",
+                    n_unknown, feature
+                )
+                logger.debug(
+                    "process_data: unknown values for '%s': %s",
+                    feature, np.unique(X_categorical[unknown, i]).tolist()
+                )
         X_categorical = encoder.transform(X_categorical)
         try:
             y = lb.transform(y.values).ravel()
@@ -67,4 +91,5 @@ def process_data(
             pass
 
     X = np.concatenate([X_continuous, X_categorical], axis=1)
+    logger.debug("process_data: output shape=%s", X.shape)
     return X, y, encoder, lb

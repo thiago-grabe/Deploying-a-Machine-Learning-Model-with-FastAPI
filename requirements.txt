@@ -1,0 +1,13 @@
+# Vercel deployment requirements — inference runtime only.
+# KEEP PINS IN SYNC with starter/requirements.txt (the full dev/CI set).
+# scikit-learn/numpy pins are load-bearing: the committed starter/model/*.pkl
+# artifacts were trained with these exact versions.
+
+fastapi==0.117.1
+pydantic==2.11.9
+pandas==2.3.2
+numpy==2.3.3
+scikit-learn==1.7.2
+
+# Not needed by Vercel's ASGI runtime — kept for local `uvicorn app:app` runs.
+uvicorn==0.36.0

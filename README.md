@@ -201,7 +201,42 @@ python -m pytest tests/test_api.py -v
 
 ## 🚀 Deployment
 
-### Live Deployment
+### Vercel Deployment & Web UI
+
+**🌐 Vercel URL:** `https://census-income-classification.vercel.app` · **Web UI:** [`/ui/`](https://census-income-classification.vercel.app/ui/)
+
+The API also runs on Vercel serverless (FastAPI preset): a root
+`app.py` shim serves `starter/main.py` as a Python Function, the web UI is
+served by the app at `/ui`, and production deploys happen **only from
+GitHub Actions after CI passes** (push → test → deploy). API paths are
+identical to Render, so every command below works against either URL.
+Full setup, logging guide, and troubleshooting: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md).
+
+Five ready-made test requests (also one-click presets in the web UI):
+
+```bash
+BASE=https://census-income-classification.vercel.app
+
+# 1. Rubric low income — expect {"prediction":"<=50K"}
+curl -s -X POST $BASE/predict -H 'Content-Type: application/json' -d '{"age":25,"workclass":"Private","fnlgt":226802,"education":"11th","education-num":7,"marital-status":"Never-married","occupation":"Machine-op-inspct","relationship":"Own-child","race":"Black","sex":"Male","capital-gain":0,"capital-loss":0,"hours-per-week":40,"native-country":"United-States"}'
+
+# 2. Rubric high income — expect {"prediction":">50K"}
+curl -s -X POST $BASE/predict -H 'Content-Type: application/json' -d '{"age":52,"workclass":"Self-emp-inc","fnlgt":287927,"education":"HS-grad","education-num":9,"marital-status":"Married-civ-spouse","occupation":"Exec-managerial","relationship":"Wife","race":"White","sex":"Female","capital-gain":15024,"capital-loss":0,"hours-per-week":40,"native-country":"United-States"}'
+
+# 3. Typical row — expect {"prediction":"<=50K"}
+curl -s -X POST $BASE/predict -H 'Content-Type: application/json' -d '{"age":37,"workclass":"Private","fnlgt":178356,"education":"HS-grad","education-num":9,"marital-status":"Married-civ-spouse","occupation":"Prof-specialty","relationship":"Husband","race":"White","sex":"Male","capital-gain":0,"capital-loss":0,"hours-per-week":40,"native-country":"United-States"}'
+
+# 4. Senior with unknown (?) workclass/occupation — expect {"prediction":"<=50K"}
+curl -s -X POST $BASE/predict -H 'Content-Type: application/json' -d '{"age":68,"workclass":"?","fnlgt":187749,"education":"HS-grad","education-num":9,"marital-status":"Widowed","occupation":"?","relationship":"Not-in-family","race":"White","sex":"Female","capital-gain":0,"capital-loss":0,"hours-per-week":12,"native-country":"United-States"}'
+
+# 5. Immigrant professional (Doctorate, India) — expect {"prediction":">50K"}
+curl -s -X POST $BASE/predict -H 'Content-Type: application/json' -d '{"age":45,"workclass":"Private","fnlgt":120277,"education":"Doctorate","education-num":16,"marital-status":"Married-civ-spouse","occupation":"Prof-specialty","relationship":"Husband","race":"Asian-Pac-Islander","sex":"Male","capital-gain":5178,"capital-loss":0,"hours-per-week":50,"native-country":"India"}'
+```
+
+The Render deployment below remains live and unchanged
+(details in [starter/DEPLOYMENT.md](starter/DEPLOYMENT.md)).
+
+### Live Deployment (Render)
 
 **🌐 Production URL:** [https://census-income-api-l4cf.onrender.com](https://census-income-api-l4cf.onrender.com)
 
