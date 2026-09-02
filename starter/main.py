@@ -130,7 +130,7 @@ async def welcome():
     }
 
 
-UI_PATH = os.path.join(os.path.dirname(__file__), "..", "public", "ui", "index.html")
+UI_PATH = os.path.join(os.path.dirname(__file__), "static", "index.html")
 
 
 @app.get("/ui", include_in_schema=False)

@@ -13,7 +13,7 @@ Vercel is an additional deployment target, and both serve identical API paths.
                         │                                              │
      all paths ───────► │  Python Function (FastAPI service "web")     │
                         │    app.py ──► starter/main.py  `app`         │
-                        │       ├── GET /ui  ► public/ui/index.html    │
+                        │       ├── GET /ui ► starter/static/index.html│
                         │       │            (FileResponse)            │
                         │       │  loads at cold start:                │
                         │       ├── starter/model/model.pkl   (4.2 MB) │
@@ -45,8 +45,8 @@ Key properties:
 | `requirements.txt` (root) | Slim inference-only pins installed by Vercel (~207 MB, fits the 500 MB Python function limit). Keep in lockstep with `starter/requirements.txt` |
 | `starter/requirements.txt` | Full dev/CI dependency set (Jupyter, plotting, aequitas…) — used by CI and Render, never by Vercel |
 | `vercel.json` | Region (`gru1`), function `maxDuration`, bundle `excludeFiles`, Git auto-deploy disabled |
-| `.vercelignore` | Upload trim (`.venv`, data, screenshots, tests). Never lists `starter/model/` or `public/` |
-| `public/ui/index.html` | Web UI, served by the FastAPI app at `/ui` via FileResponse (works identically on Vercel, Render, and local uvicorn) |
+| `.vercelignore` | Upload trim (`.venv`, data, screenshots, tests). Never lists `starter/model/` or `starter/static/` |
+| `starter/static/index.html` | Web UI, served by the FastAPI app at `/ui` via FileResponse (works identically on Vercel, Render, and local uvicorn; kept inside `starter/` because only the service tree is bundled) |
 | `.github/workflows/python-app.yml` | `test` job (CI) + `deploy` job (CD, gated on `test`, master pushes only) |
 
 ## 3. First-time setup runbook
@@ -70,13 +70,25 @@ After that, every merge to `master` deploys automatically once CI is green.
 
 ## 4. CI/CD flow
 
-- Push/PR → `test` job: flake8 (hard-fail on syntax/undefined names), retrains
-  the model, runs the full pytest suite (18 tests).
-- Push to `master` only, after `test` passes → `deploy` job: installs the
-  Vercel CLI, runs `vercel deploy --prod` (remote build on Vercel's image),
-  then smoke-tests `https://census-income-classification.vercel.app/health`.
-- The deployed URL is printed in the job log (`Deployed: https://…`).
-- PRs never deploy (the `deploy` job's `if` excludes non-push events).
+Every push/PR runs four parallel jobs:
+
+- **lint** — `ruff check` (config in `ruff.toml`) + flake8 (hard-fail on
+  syntax/undefined names, style report otherwise).
+- **test** — Python 3.13 + full `starter/requirements.txt` (pip-cached),
+  retrains the model, runs the pytest suite with coverage, uploads
+  `slice_output.txt` as a build artifact.
+- **test-vercel-parity** — Python 3.12 + the slim root `requirements.txt` and
+  the committed pickles: the exact runtime Vercel serves, catching
+  version/dependency skew before a deploy does.
+- **security** (advisory, never blocks) — `pip-audit` on the deployment
+  dependencies + `bandit` SAST on the app code.
+
+Push to `master` only, after lint + both test jobs pass → **deploy**:
+installs the Vercel CLI, runs `vercel deploy --prod` (remote build on
+Vercel's image), then smoke-tests
+`https://census-income-classification.vercel.app/health`. The deployed URL is
+printed in the job log (`Deployed: https://…`). PRs never deploy. Superseded
+PR runs are auto-cancelled (concurrency group).
 
 ## 5. Endpoints
 
