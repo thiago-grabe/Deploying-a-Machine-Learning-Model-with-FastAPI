@@ -6,5 +6,8 @@
 starter/data
 starter/screenshots
 starter/slice_output.txt
+starter/tests
 **/__pycache__
 **/.pytest_cache
+*.md
+starter/*.md
