@@ -63,6 +63,15 @@ def test_health():
     assert "model_type" in body
 
 
+def test_ui_page_served():
+    """GET /ui returns the web UI HTML."""
+    response = client.get("/ui")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    assert "Census Income Classifier" in response.text
+
+
 def test_predict_rejects_negative_age():
     """Out-of-bounds numeric input must fail validation with 422."""
     response = client.post("/predict", json=valid_payload(age=-5))

@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 import numpy as np  # noqa: E402
 import sklearn  # noqa: E402
 from fastapi import FastAPI, HTTPException, Request  # noqa: E402
+from fastapi.responses import FileResponse  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 import pandas as pd  # noqa: E402
 
@@ -127,6 +128,19 @@ async def welcome():
         "docs": "Visit /docs for API documentation",
         "health": "operational"
     }
+
+
+UI_PATH = os.path.join(os.path.dirname(__file__), "..", "public", "ui", "index.html")
+
+
+@app.get("/ui", include_in_schema=False)
+@app.get("/ui/", include_in_schema=False)
+async def ui():
+    """
+    Serve the single-file web UI. Served by the app (not the CDN) so it works
+    identically on Vercel, Render, and local uvicorn.
+    """
+    return FileResponse(UI_PATH, media_type="text/html")
 
 
 @app.get("/health")

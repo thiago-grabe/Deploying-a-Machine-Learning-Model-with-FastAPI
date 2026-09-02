@@ -9,7 +9,7 @@
   "services": {
     "web": {
       "root": ".",
-      "entrypoint": "."
+      "entrypoint": "app.py"
     }
   },
   "rewrites": [

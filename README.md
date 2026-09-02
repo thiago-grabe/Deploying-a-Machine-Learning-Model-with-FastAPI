@@ -205,9 +205,9 @@ python -m pytest tests/test_api.py -v
 
 **🌐 Vercel URL:** `https://census-income-classification.vercel.app` · **Web UI:** [`/ui/`](https://census-income-classification.vercel.app/ui/)
 
-The API also runs on Vercel serverless (zero-config FastAPI preset): a root
-`app.py` shim serves `starter/main.py` as a Python Function, the web UI is a
-static page on the CDN at `/ui/`, and production deploys happen **only from
+The API also runs on Vercel serverless (FastAPI preset): a root
+`app.py` shim serves `starter/main.py` as a Python Function, the web UI is
+served by the app at `/ui`, and production deploys happen **only from
 GitHub Actions after CI passes** (push → test → deploy). API paths are
 identical to Render, so every command below works against either URL.
 Full setup, logging guide, and troubleshooting: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md).

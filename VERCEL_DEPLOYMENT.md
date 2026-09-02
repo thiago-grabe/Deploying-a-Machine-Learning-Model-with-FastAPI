@@ -9,12 +9,12 @@ Vercel is an additional deployment target, and both serve identical API paths.
 
 ```
                         ┌──────────────────────────────────────────────┐
-   Browser ───────────► │                Vercel Edge/CDN               │
+   Browser ───────────► │                 Vercel (gru1)                │
                         │                                              │
-     GET /ui/  ───────► │  public/ui/index.html   (static, CDN-served) │
-                        │                                              │
-     everything else ─► │  Python Function (FastAPI preset)            │
+     all paths ───────► │  Python Function (FastAPI service "web")     │
                         │    app.py ──► starter/main.py  `app`         │
+                        │       ├── GET /ui  ► public/ui/index.html    │
+                        │       │            (FileResponse)            │
                         │       │  loads at cold start:                │
                         │       ├── starter/model/model.pkl   (4.2 MB) │
                         │       ├── starter/model/encoder.pkl          │
@@ -45,8 +45,8 @@ Key properties:
 | `requirements.txt` (root) | Slim inference-only pins installed by Vercel (~207 MB, fits the 500 MB Python function limit). Keep in lockstep with `starter/requirements.txt` |
 | `starter/requirements.txt` | Full dev/CI dependency set (Jupyter, plotting, aequitas…) — used by CI and Render, never by Vercel |
 | `vercel.json` | Region (`gru1`), function `maxDuration`, bundle `excludeFiles`, Git auto-deploy disabled |
-| `.vercelignore` | Upload trim (`.venv`, data, screenshots). Never lists `starter/model/` or `public/` |
-| `public/ui/index.html` | Web UI, CDN-served at `/ui/` (deliberately not `public/index.html`, which would shadow the rubric-required `GET /` JSON) |
+| `.vercelignore` | Upload trim (`.venv`, data, screenshots, tests). Never lists `starter/model/` or `public/` |
+| `public/ui/index.html` | Web UI, served by the FastAPI app at `/ui` via FileResponse (works identically on Vercel, Render, and local uvicorn) |
 | `.github/workflows/python-app.yml` | `test` job (CI) + `deploy` job (CD, gated on `test`, master pushes only) |
 
 ## 3. First-time setup runbook
@@ -86,7 +86,7 @@ After that, every merge to `master` deploys automatically once CI is green.
 | `GET /health` | Uptime/deploy checks | `{"status":"ok","model_loaded":true,"model_type":"RandomForestClassifier","sklearn_version":"1.7.2"}` |
 | `POST /predict` | Model inference | body below → `{"prediction": ">50K"}` or `{"prediction": "<=50K"}` |
 | `GET /docs` | Swagger UI | interactive |
-| `GET /ui/` | Web UI (static) | form with 5 test presets |
+| `GET /ui` | Web UI | form with 5 test presets |
 
 `POST /predict` body (keys use hyphens; all fields required; bounds enforced —
 invalid input returns 422):
