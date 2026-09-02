@@ -105,12 +105,12 @@ jobs:
         cd starter
         python -m pytest tests/ -v --tb=short
 
-  # Advisory only (continue-on-error): the pinned course dependency set is
-  # historical, so findings surface in the UI without blocking the pipeline.
+  # Advisory only: the course dependency set is pinned for reproducibility
+  # (e.g. starlette via fastapi==0.117.1 has known CVEs with no in-pin fix),
+  # so findings surface as warning annotations without failing the check.
   security:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true
 
     steps:
     - uses: actions/checkout@v4
@@ -124,11 +124,15 @@ jobs:
       run: pip install pip-audit bandit
 
     - name: pip-audit (Vercel runtime dependencies)
-      run: pip-audit -r requirements.txt
+      run: |
+        pip-audit -r requirements.txt || \
+          echo "::warning title=pip-audit::Known vulnerabilities in pinned dependencies (advisory - see job log)"
 
     - name: Bandit SAST (application code)
       # B301/B403 (pickle) skipped: pickle persistence is a course requirement
-      run: bandit -r starter/starter starter/main.py app.py -s B301,B403
+      run: |
+        bandit -r starter/starter starter/main.py app.py -s B301,B403 || \
+          echo "::warning title=bandit::SAST findings (advisory - see job log)"
 
   # CD is gated on CI: runs only after lint + both test jobs succeed on a
   # push to master (never on PRs). Vercel's Git auto-deploy is disabled in
