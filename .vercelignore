@@ -1,0 +1,10 @@
+# Trim the deployment upload. NEVER ignore starter/model/ (runtime pickles)
+# or public/ (static UI).
+.venv
+.git
+.github
+starter/data
+starter/screenshots
+starter/slice_output.txt
+**/__pycache__
+**/.pytest_cache

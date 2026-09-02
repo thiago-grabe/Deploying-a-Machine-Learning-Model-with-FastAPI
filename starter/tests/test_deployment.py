@@ -1,15 +1,19 @@
 """
 Tests for deployment-related additions: /health endpoint, input validation
-bounds, and unknown-category warning logging.
+bounds, unknown-category warning logging, and the Vercel entrypoint shim.
 """
 
 import logging
 import sys
 import os
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Repo root APPENDED (not inserted) so it can never shadow starter/ modules;
+# needed to import the root Vercel shim app.py from tests run inside starter/.
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from main import app
 
@@ -36,6 +40,15 @@ def valid_payload(**overrides):
     }
     payload.update(overrides)
     return payload
+
+
+def test_vercel_shim_exports_same_app():
+    """The root app.py Vercel shim must re-export the exact same FastAPI
+    instance that starter/main.py defines (identity, not a copy)."""
+    import app as vercel_shim
+    import main
+
+    assert vercel_shim.app is main.app
 
 
 def test_health():
